@@ -6,8 +6,6 @@ resource "aws_instance" "test_run" {
   key_name                    = aws_key_pair.testkey.id
   associate_public_ip_address = true
   availability_zone           = "eu-north-1a"
-  enable_dns_support          = true
-  enable_dns_hostnames        = true
 
   tags = {
     name = "test"
@@ -55,6 +53,8 @@ resource "aws_security_group" "test_run" {
 
 resource "aws_vpc" "test_vpc" {
   cidr_block = "10.0.0.0/16"
+    enable_dns_support          = true
+    enable_dns_hostnames        = true
 
   tags = {
     Name = "test_vpc"
@@ -195,7 +195,7 @@ resource "aws_route_table" "test_route" {
 resource "aws_route_table_association" "a" {
   subnet_id      = aws_subnet.private.id
   route_table_id = aws_route_table.test_route.id
-  
+
   tags{
     name = "test"
   }
