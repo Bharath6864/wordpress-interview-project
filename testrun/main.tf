@@ -3,8 +3,11 @@ resource "aws_instance" "test_run" {
   instance_type               = "t3.micro"
   vpc_security_group_ids      = [aws_security_group.test_run.id]
   subnet_id                   = aws_subnet.public.id
+  key_name                    = aws_key_pair.testkey.id
   associate_public_ip_address = true
   availability_zone           = "eu-north-1a"
+  enable_dns_support          = true
+  enable_dns_hostnames        = true
 
   tags = {
     name = "test"
@@ -155,8 +158,45 @@ resource "aws_route_table_association" "test_table_association" {
 resource "aws_key_pair" "testkey" {
   key_name   = "test-key"
   public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDmJctPaFHtQw7UNPdVvsHUoUDFnP4Rivod0qLbNpuGbwvX/MY/gt7/5uAlsac9Tw7OFYhpx7yeWWaSeb2du3tL5XDP6/dbTuBciNi56UTQyn/cKvsXu9ItqIYq6zH7+cI/UG9BerSjUQ+O9Cqf0lhW9S/D+oBv70HUZHgGBvoAvJy2C6YpxicJuzDG2Flf+L6WRN3ZQg6k0k2U59Y5HvJg8oh53JGQ1uHtHf9yO4O3pDN4xul29W4cMM5QYUCtxGlUxBHRQWOW+KkDDDZFyNnlTN21MNaNFSADItP+dEZQmvYeKOC/SLkHxvH5WNe3LrKoW4Jc8fYEdP0eTgtV8RcC3EKWGwarIHW8mZT8pc9lZW9NE2RuqjxZhuaI6gKMLBr3aTH7i6bfh9gHTr3u6MLkpZGuTof/dQEPFWlqAnvr3q8Eohni1Qy/vvK1Om8JY+w3FlqIXlFZgo37AEBGvznG9CfHLXVdB1m5PhBmKM5VF6EaCE7gtRtZLB/c+kEWhKTh1vj1nruJLZpptggiIC5cbtRZdjjxxNzFkb+bJ1ogvW462tw9urlg3wdKLpvWStppN3VXHqz11GImSSBaOswdNePr/wXNpPWSYiix2lkbft/Nng89f1IAbT2jXbJBd0YJP/oke27sH9MWrI9CYJIHWZOFrpUQPiTn5uwnwnTvFQ== Bharath M@DESKTOP-M1TN014"
-  
+
   tags = {
+    name = "test"
+  }
+}
+
+resource "aws_eip" "testeip" {
+  instance = aws_instance.test_run.id
+  vpc      = true
+}
+
+#network address translation gateway
+
+resource "aws_nat_gateway" "test_nat" {
+  allocation_id = aws_eip.testeip.id
+  subnet_id     = aws_subnet.public.id
+
+  tags = {
+    Name = "test"
+  }
+}
+
+resource "aws_route_table" "test_route" {
+  vpc_id = aws_vpc.test_vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_nat_gateway.test_nat.id
+  }
+  tags {
+    name = "test"
+  }
+}
+
+resource "aws_route_table_association" "a" {
+  subnet_id      = aws_subnet.private.id
+  route_table_id = aws_route_table.test_route.id
+  
+  tags{
     name = "test"
   }
 }
