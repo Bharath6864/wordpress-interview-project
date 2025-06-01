@@ -52,9 +52,9 @@ resource "aws_security_group" "test_run" {
 }
 
 resource "aws_vpc" "test_vpc" {
-  cidr_block = "10.0.0.0/16"
-    enable_dns_support          = true
-    enable_dns_hostnames        = true
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_support   = true
+  enable_dns_hostnames = true
 
   tags = {
     Name = "test_vpc"
@@ -166,7 +166,7 @@ resource "aws_key_pair" "testkey" {
 
 resource "aws_eip" "testeip" {
   instance = aws_instance.test_run.id
-  vpc      = true
+  domain   = "vpc"
 }
 
 #network address translation gateway
@@ -187,16 +187,9 @@ resource "aws_route_table" "test_route" {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_nat_gateway.test_nat.id
   }
-  tags {
-    name = "test"
-  }
 }
 
 resource "aws_route_table_association" "a" {
   subnet_id      = aws_subnet.private.id
   route_table_id = aws_route_table.test_route.id
-
-  tags{
-    name = "test"
-  }
 }
